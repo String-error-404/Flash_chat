@@ -8,8 +8,9 @@ class WelcomeScreen extends StatefulWidget {
   @override
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
-//! by providing the ticker we are enabling to our welcomescreenstate as a ticker provider
 
+//! by providing the ticker we are enabling to our welcomescreenstate as a ticker provider
+// * the mixins are the way of reusing the class code into multiple class heirarcheies
 class _WelcomeScreenState extends State<WelcomeScreen>
     with SingleTickerProviderStateMixin {
   // ANIMATION
