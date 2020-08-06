@@ -71,6 +71,29 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            StreamBuilder<QuerySnapshot>(
+              // !this is a query snaphot which will ulitmately conatin the messages that we're after
+              stream: _firestore.collection('message').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  // this is flutter aysnc snapshot
+                  //* the aysnc snapshot contains  a query snapshot from firebase
+                  final messages = snapshot.data.documents;
+                  List<Text> messageWidgets = [];
+                  for (var message in messages) {
+                    final messageText = message.data['text'];
+                    final messageSender = message.data['sender'];
+
+                    final messageWidget =
+                        Text("$messageText from $messageSender");
+                    messageWidgets.add(messageWidget);
+                  }
+                  return Column(
+                    children: messageWidgets,
+                  );
+                }
+              },
+            ),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
