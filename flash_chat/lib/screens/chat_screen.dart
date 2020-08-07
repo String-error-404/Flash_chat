@@ -41,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // }
 
   void getMessageStream() async {
-    await for (var snapshot in _firestore.collection('message').snapshots()) {
+    await for (var snapshot in _firestore.collection('messages').snapshots()) {
       for (var message in snapshot.documents) {
         print(message.data);
       }
@@ -73,25 +73,36 @@ class _ChatScreenState extends State<ChatScreen> {
           children: <Widget>[
             StreamBuilder<QuerySnapshot>(
               // !this is a query snaphot which will ulitmately conatin the messages that we're after
-              stream: _firestore.collection('message').snapshots(),
+              stream: _firestore.collection('messages').snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  // this is flutter aysnc snapshot
-                  //* the aysnc snapshot contains  a query snapshot from firebase
-                  final messages = snapshot.data.documents;
-                  List<Text> messageWidgets = [];
-                  for (var message in messages) {
-                    final messageText = message.data['text'];
-                    final messageSender = message.data['sender'];
-
-                    final messageWidget =
-                        Text("$messageText from $messageSender");
-                    messageWidgets.add(messageWidget);
-                  }
-                  return Column(
-                    children: messageWidgets,
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.lightBlueAccent,
+                    ),
                   );
                 }
+                // this is flutter aysnc snapshot
+                //* the aysnc snapshot contains  a query snapshot from firebase
+                final messages = snapshot.data.documents;
+                List<MessageBubble> messageBubbles = [];
+                for (var message in messages) {
+                  final messageText = message.data['text'];
+                  final messageSender = message.data['sender'];
+
+                  final messageBubble = MessageBubble(
+                    sender: messageSender,
+                    text: messageText,
+                  );
+                  messageBubbles.add(messageBubble);
+                }
+                return Expanded(
+                  child: ListView(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+                    children: messageBubbles,
+                  ),
+                );
               },
             ),
             Container(
@@ -110,7 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   FlatButton(
                     onPressed: () {
-                      _firestore.collection('message').add({
+                      _firestore.collection('messages').add({
                         'text': messageText,
                         'sender': loggedInUser.email,
                       });
@@ -126,6 +137,46 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessageBubble extends StatelessWidget {
+  final String sender;
+  final String text;
+
+  MessageBubble({this.sender, this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          Text(
+            sender,
+            style: TextStyle(
+              color: Colors.black54,
+            ),
+          ),
+          Material(
+            elevation: 5.0,
+            borderRadius: BorderRadius.circular(30.0),
+            color: Colors.lightBlueAccent,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15.0,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
